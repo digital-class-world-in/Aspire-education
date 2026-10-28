@@ -1,0 +1,112 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * CORE PHILOSOPHY
+     * This ruleset implements a multi-tenant Institute Management System (IMS). 
+     * Security is centered around the 'Institute' as the root tenant. 
+     */
+
+    // --- GLOBAL HELPER FUNCTIONS ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isStaffOf(instId) {
+      return isSignedIn() && exists(/databases/$(database)/documents/institutes/$(instId)/staff/$(request.auth.uid));
+    }
+
+    function getStaff(instId) {
+      return get(/databases/$(database)/documents/institutes/$(instId)/staff/$(request.auth.uid)).data;
+    }
+
+    function isAdmin(instId) {
+      return isStaffOf(instId) && getStaff(instId).role == 'Administrator';
+    }
+
+    // --- COLLECTION RULES ---
+
+    match /institutes/{instituteId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if resource != null && isAdmin(instituteId);
+      allow delete: if resource != null && isAdmin(instituteId);
+
+      /**
+       * @description Rules for Real-Time Chat System.
+       */
+      match /chats/{chatId} {
+        allow read, write: if isSignedIn();
+        
+        match /messages/{messageId} {
+          allow read, write: if isSignedIn();
+        }
+      }
+
+      match /staff/{staffId} {
+        allow get: if isSignedIn() && (isOwner(staffId) || isStaffOf(instituteId));
+        allow list: if isSignedIn();
+        allow create: if isOwner(staffId) && request.resource.data.id == staffId;
+        allow update: if resource != null && (isOwner(staffId) || isAdmin(instituteId)) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isAdmin(instituteId);
+      }
+
+      match /courses/{courseId} {
+        allow get, list: if true;
+        allow create: if isStaffOf(instituteId) && request.resource.data.id == courseId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      match /classes/{classId} {
+        allow get, list: if true;
+        allow create: if isStaffOf(instituteId) && request.resource.data.id == classId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      match /enquiries/{enquiryId} {
+        allow get, list: if isStaffOf(instituteId);
+        allow create: if request.resource.data.id == enquiryId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      match /students/{studentId} {
+        allow get, list: if isSignedIn();
+        allow create: if isStaffOf(instituteId) && request.resource.data.id == studentId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      match /admissions/{admissionId} {
+        allow get, list: if isSignedIn();
+        allow create: if isStaffOf(instituteId) && request.resource.data.id == admissionId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      match /payments/{paymentId} {
+        allow get, list: if isStaffOf(instituteId);
+        allow create: if isStaffOf(instituteId) && request.resource.data.id == paymentId;
+        allow update: if resource != null && isStaffOf(instituteId) && request.resource.data.id == resource.data.id;
+        allow delete: if resource != null && isStaffOf(instituteId);
+      }
+
+      /**
+       * @description Rules for Leave Requests.
+       */
+      match /leave-requests/{requestId} {
+        allow read, update: if isAdmin(instituteId);
+        allow create: if isSignedIn();
+        allow delete: if isAdmin(instituteId);
+      }
+    }
+  }
+}

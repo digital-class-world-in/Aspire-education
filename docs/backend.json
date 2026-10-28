@@ -1,0 +1,257 @@
+{
+  "entities": {
+    "InstituteProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InstituteProfile",
+      "type": "object",
+      "description": "Represents the core profile and subscription details for the institute, including plan information and website links.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the InstituteProfile entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The official name of the institute."
+        },
+        "currentPlan": {
+          "type": "string",
+          "description": "The current subscription plan the institute is on (e.g., Basic, Premium). Displayed in Dashboard Overview."
+        },
+        "planExpiryDate": {
+          "type": "string",
+          "description": "The date and time when the current subscription plan expires. Displayed in Dashboard Overview.",
+          "format": "date-time"
+        },
+        "websiteUrl": {
+          "type": "string",
+          "description": "The URL of the institute's official website. Used for quick links.",
+          "format": "uri"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "The primary contact email address for the institute.",
+          "format": "email"
+        },
+        "contactPhoneNumber": {
+          "type": "string",
+          "description": "The primary contact phone number for the institute."
+        },
+        "address": {
+          "type": "string",
+          "description": "The physical address of the institute."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "currentPlan",
+        "planExpiryDate",
+        "websiteUrl"
+      ]
+    },
+    "Staff": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Staff",
+      "type": "object",
+      "description": "Represents an individual staff member of the institute, used for Staff Management.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Staff entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the staff member."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the staff member."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the staff member, used for communication.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the staff member."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "The date of birth of the staff member.",
+          "format": "date"
+        },
+        "hireDate": {
+          "type": "string",
+          "description": "The date when the staff member was hired.",
+          "format": "date"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role or position of the staff member within the institute (e.g., Teacher, Administrator, Counselor)."
+        },
+        "address": {
+          "type": "string",
+          "description": "The residential address of the staff member."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "hireDate",
+        "role"
+      ]
+    },
+    "Student": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Student",
+      "type": "object",
+      "description": "Represents a student enrolled or previously enrolled at the institute. Used for Upcoming Birthdays and other student management.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Student entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the student."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the student."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the student, used for communication.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the student."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "The date of birth of the student. Used for the Upcoming Birthdays feature.",
+          "format": "date"
+        },
+        "admissionDate": {
+          "type": "string",
+          "description": "The date and time when the student was admitted. (Relationship: Student 1:1 Admission)",
+          "format": "date-time"
+        },
+        "address": {
+          "type": "string",
+          "description": "The residential address of the student."
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "dateOfBirth",
+        "admissionDate"
+      ]
+    },
+    "LeaveRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "LeaveRequest",
+      "type": "object",
+      "description": "Represents a leave request submitted by a student or staff member.",
+      "properties": {
+        "id": { "type": "string" },
+        "requesterName": { "type": "string" },
+        "requesterId": { "type": "string" },
+        "role": { "type": "string", "enum": ["Student", "Staff"] },
+        "leaveType": { "type": "string", "enum": ["Sick", "Casual", "Paid"] },
+        "fromDate": { "type": "string", "format": "date" },
+        "toDate": { "type": "string", "format": "date" },
+        "totalDays": { "type": "number" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "appliedDate": { "type": "string", "format": "date-time" },
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "rejectedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "requesterName", "role", "leaveType", "fromDate", "toDate", "status"]
+    },
+    "Course": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Course",
+      "type": "object",
+      "description": "Represents a distinct academic or skill-based program offered by the institute. Used for dynamic dropdown options in 'Enquire For Course Or Class'.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Course entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The official name of the course."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the course content and objectives."
+        },
+        "duration": {
+          "type": "string",
+          "description": "The typical duration of the course (e.g., '3 years', '6 months')."
+        },
+        "fees": {
+          "type": "number",
+          "description": "The standard fees for the course."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "duration",
+        "fees"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/institutes/{instituteId}",
+        "definition": {
+          "entityName": "InstituteProfile",
+          "schema": {
+            "$ref": "#/backend/entities/InstituteProfile"
+          },
+          "description": "Represents the core profile and subscription details for an institute."
+        }
+      },
+      {
+        "path": "/institutes/{instituteId}/leave-requests/{requestId}",
+        "definition": {
+          "entityName": "LeaveRequest",
+          "schema": {
+            "$ref": "#/backend/entities/LeaveRequest"
+          },
+          "description": "Represents a leave request from a student or staff member.",
+          "params": [
+            {
+              "name": "instituteId",
+              "description": "The unique identifier of the institute."
+            },
+            {
+              "name": "requestId",
+              "description": "The unique identifier of the leave request."
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

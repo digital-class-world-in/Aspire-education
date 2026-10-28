@@ -1,0 +1,16 @@
+[
+  {
+    "origin": [
+      "http://localhost:9002",
+      "https://www.aspireeducation.in",
+      "http://27.116.54.3:83"
+    ],
+    "method": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -1,0 +1,184 @@
+async function handleFullSync(instituteId: string, req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const { fetchEsslLogsServer } = await import("@/lib/essl-server");
+
+    const today = new Date();
+    const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const defaultFrom = `${localDate} 00:00:00`;
+    const defaultTo = `${localDate} 23:59:59`;
+
+    const fromDate = searchParams.get("FromDateTime") || defaultFrom;
+    const toDate = searchParams.get("ToDateTime") || defaultTo;
+
+    console.log(`[handleFullSync] Fetching logs for range: ${fromDate} to ${toDate}`);
+
+    let rawLogs = await fetchEsslLogsServer({
+      FromDateTime: fromDate,
+      ToDateTime: toDate,
+      SerialNumber: "NFZ8245102868",
+      UserName: "aspireedu",
+      UserPassword: "Aspire@123"
+    });
+
+    if (!rawLogs || rawLogs.length === 0) {
+      return NextResponse.json({ success: true, message: "No machine logs found.", data: [] });
+    }
+
+    // 1. Filter by strict date range and remove exact duplicates (same timestamp/code)
+    const seenMap = new Set();
+    rawLogs = rawLogs.filter(log => {
+      const isInRange = log.DateTime >= fromDate && log.DateTime <= toDate;
+      const uniqueKey = `${log.EmployeeCode}_${log.DateTime}`;
+      if (isInRange && !seenMap.has(uniqueKey)) {
+        seenMap.add(uniqueKey);
+        return true;
+      }
+      return false;
+    });
+
+    // 2. Strict Deduplication Logic: ONE IN and ONE OUT per person per day
+    const dailyPunches = new Map<string, any>(); 
+
+    for (const log of rawLogs) {
+      const date = log.DateTime.split(" ")[0];
+      const rawStatus = (log.Status || "").toString().trim().toUpperCase();
+      const punchType = (rawStatus.includes("IN") || rawStatus === "0" || rawStatus === "P") ? "IN" : "OUT";
+      const dedupeKey = `${log.EmployeeCode}_${date}_${punchType}`;
+
+      if (dailyPunches.has(dedupeKey)) {
+        const existing = dailyPunches.get(dedupeKey);
+        // Keep the earliest IN and the latest OUT
+        if (punchType === "IN") {
+          if (log.DateTime < existing.DateTime) dailyPunches.set(dedupeKey, log);
+        } else {
+          if (log.DateTime > existing.DateTime) dailyPunches.set(dedupeKey, log);
+        }
+      } else {
+        dailyPunches.set(dedupeKey, log);
+      }
+    }
+
+    const deduplicatedLogs = Array.from(dailyPunches.values()).map(log => {
+      const rawStatus = (log.Status || "").toString().trim().toUpperCase();
+      return {
+        ...log,
+        Status: (rawStatus.includes("IN") || rawStatus === "0" || rawStatus === "P") ? "IN" : "OUT",
+        source: "MACHINE_SYNC",
+        processedAt: new Date().toISOString()
+      };
+    });
+
+    // 3. SMS Logic for Deduplicated Entries
+    const [studentsSnap, existingLogsSnap, dbLogsSnap] = await Promise.all([
+      db.ref(`Institutes/${instituteId}/admissions`).get(),
+      db.ref(`Institutes/${instituteId}/attendance/essl-attendce-logs-2`).get(),
+      db.ref(`Institutes/${instituteId}/essl_logs`).get()
+    ]);
+
+    const students = studentsSnap.exists() ? Object.values(studentsSnap.val() as any) : [];
+    const existingLogs = existingLogsSnap.val() || {};
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    for (const log of deduplicatedLogs) {
+      const uniqueKey = `${log.DateTime}_${log.EmployeeCode}`.replace(/[^a-z0-9]/gi, '_');
+      const alreadySent = existingLogs[uniqueKey]?.IsSendSms === true;
+
+      if (!alreadySent) {
+        const student: any = students.find((s: any) => {
+          if (!s.rollNo) return false;
+          const dbRoll = s.rollNo.toString().toLowerCase().trim();
+          const machineCode = log.EmployeeCode.toString().toLowerCase().trim();
+          return dbRoll === machineCode || dbRoll === `stu_${machineCode}` || machineCode === `stu_${dbRoll}` || 
+                 dbRoll.replace(/^stu_/, '') === machineCode.replace(/^stu_/, '');
+        });
+
+        if (student && student.fatherMobile && student.fatherMobile !== "N/A") {
+          try {
+            let mobile = student.fatherMobile.toString().trim();
+            if (mobile.length === 10 && !mobile.startsWith("91")) mobile = "91" + mobile;
+
+            const smsRes = await sendAttendanceSmsServer({
+              mobile: mobile,
+              studentName: student.studentName,
+              dateTime: log.DateTime,
+              type: log.Status
+            });
+            log.IsSendSms = smsRes.success;
+          } catch (smsErr) {
+            console.error(`[SMS Error] ${log.EmployeeCode}:`, smsErr);
+            log.IsSendSms = false;
+          }
+        }
+      } else {
+        log.IsSendSms = true;
+      }
+    }
+
+    // 4. Batch Database Updates
+    const updates: any = {};
+    
+    // A. Save ALL raw machine logs to the Transaction Logs path (essl_logs)
+    for (const log of rawLogs) {
+      const uniqueKey = `${log.DateTime}_${log.EmployeeCode}`.replace(/[^a-z0-9]/gi, '_');
+      const rawStatus = (log.Status || "").toString().trim().toUpperCase();
+      const statusLabel = (rawStatus.includes("IN") || rawStatus === "0" || rawStatus === "P") ? "IN" : "OUT";
+      
+      updates[`Institutes/${instituteId}/essl_logs/${uniqueKey}`] = {
+        ...log,
+        Status: statusLabel,
+        source: "MACHINE_SYNC",
+        processedAt: new Date().toISOString()
+      };
+    }
+
+    // B. Save Deduplicated logs to the Archival path
+    for (const log of deduplicatedLogs) {
+      const uniqueKey = `${log.DateTime}_${log.EmployeeCode}`.replace(/[^a-z0-9]/gi, '_');
+      updates[`Institutes/${instituteId}/attendance/essl-attendce-logs-2/${uniqueKey}`] = log;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await db.ref().update(updates);
+      await syncToAttendance(deduplicatedLogs, instituteId);
+    }
+    // 5. Final Combined Response
+    const manualPunchesFromDB = Object.values(dbLogsSnap.val() || {}).filter((l: any) => {
+      const isManual = l.source?.includes("MANUAL") || l.SerialNumber === "MANUAL";
+      const logDate = l.DateTime?.split(' ')[0];
+      return isManual && logDate >= fromDate.split(' ')[0] && logDate <= toDate.split(' ')[0];
+    });
+
+    const machineLogsWithPunchType = rawLogs.map(l => {
+      const rawStatus = (l.Status || "").toString().trim().toUpperCase();
+      const punchType = (rawStatus.includes("IN") || rawStatus === "0" || rawStatus === "P") ? "PUNCH IN" : "PUNCH OUT";
+      return { ...l, PunchType: punchType, source: "MACHINE_SYNC" };
+    });
+
+    const combinedLogs = [
+      ...machineLogsWithPunchType,
+      ...manualPunchesFromDB.map(l => ({
+        ...l,
+        PunchType: l.Status?.toUpperCase().includes("IN") ? "PUNCH IN" : "PUNCH OUT"
+      }))
+    ].sort((a, b) => b.DateTime.localeCompare(a.DateTime));
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully processed ${rawLogs.length} logs from machine.`,
+      range: { from: fromDate, to: toDate },
+      summary: {
+        totalFromMachine: rawLogs.length,
+        afterDeduplication: deduplicatedLogs.length,
+        totalIn: machineLogsWithPunchType.filter(l => l.PunchType === "PUNCH IN").length,
+        totalOut: machineLogsWithPunchType.filter(l => l.PunchType === "PUNCH OUT").length,
+        totalManual: manualPunchesFromDB.length
+      },
+      data: combinedLogs
+    });
+
+  } catch (error: any) {
+    console.error("[handleFullSync] Critical Error:", error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

@@ -1,0 +1,95 @@
+import { useState, useEffect, useMemo } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { Card } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import {
+  ShieldCheck,
+  Layers,
+  LayoutGrid,
+  Users,
+  Wallet,
+  UserCheck,
+  Award,
+  Library,
+  Package,
+  Receipt,
+  Megaphone,
+  Settings,
+  Database,
+  Loader2,
+  Globe,
+  ClipboardList,
+  GraduationCap,
+  FileText,
+  FileVideo,
+  Video,
+  Trash2,
+  History,
+  UserPlus,
+  Settings2,
+  MapPin,
+  BellRing,
+  CalendarDays,
+  Mail,
+  Info,
+  Building2,
+  ExternalLink,
+  Download,
+  AlertCircle,
+  TrendingUp,
+  Landmark,
+  Phone,
+  CheckCircle2,
+  Edit,
+  ChevronRight,
+  Plus,
+  CreditCard,
+  CreditCardIcon
+} from "lucide-react"
+import { useFirebase, useUser } from "@/firebase"
+import { ref, onValue, update, off, get, push, set } from "firebase/database"
+import { format, formatDistanceToNow } from "date-fns"
+import { toast } from "@/hooks/use-toast"
+import { cn } from "@/lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogTitle, DialogHeader } from "@/components/ui/dialog"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
+
+// Simplified permissions for brevity just for replacement test
+const PERMISSION_GROUPS = [
+  {
+    category: "Core Control",
+    modules: [{ id: 'dashboard', label: 'Dashboard', icon: LayoutGrid }]
+  },
+  {
+    category: "Digital Assets",
+    modules: [
+      {
+        id: 'website_mgmt', label: 'Website Manager', icon: Globe, submodules: [
+          { id: 'homepage_setup', label: '↳ Homepage Setup' },
+          { id: 'about_us', label: '↳ About Us Page' }
+        ]
+      }
+    ]
+  }
+]
+
+export default function InstituteDetailsPage() {
+  const { id } = useParams()
+  // ... omitting logic for now, using multi_replace_file_content instead.
+  return <></>
+}

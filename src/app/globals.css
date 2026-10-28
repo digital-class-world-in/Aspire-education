@@ -1,0 +1,616 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 225 25% 97%;
+    /* #f5f5f9 */
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 173 80% 29%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 173 80% 29%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 173 80% 29%;
+    --radius: 0;
+
+    --chart-1: 173 80% 29%;
+    --chart-2: 173 40% 96.1%;
+
+    /* Dynamic Font Variable */
+    --font-dynamic: 'Public Sans', sans-serif;
+  }
+
+  @font-face {
+    font-family: 'Public Sans';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url(https://fonts.gstatic.com/s/publicsans/v21/ijwTs572Xtc6ZYQws9YVwnNDTJPax9k0.woff2) format('woff2');
+    unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+  }
+
+  /* Global Scope for All Content */
+  * {
+    font-family: var(--font-dynamic) !important;
+    text-transform: none !important;
+    font-weight: inherit;
+    font-size: inherit;
+    letter-spacing: normal;
+  }
+
+  body {
+    @apply bg-[#f5f5f9] text-[#1A1C1E] antialiased;
+    font-family: var(--font-dynamic);
+    font-weight: 400;
+    font-size: 15px;
+  }
+
+
+  /* ── Section Titles ─ Public Sans Light (weight 300) ── */
+  /* Give all page headings & section titles the elegant, clean Public Sans look */
+  main:not(.print-dossier) h1,
+  main:not(.print-dossier) h2,
+  main:not(.print-dossier) h3,
+  main:not(.print-dossier) h4 {
+    font-family: 'Public Sans', var(--font-public-sans), sans-serif !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.25 !important;
+  }
+
+  /* Common section/page title class patterns used across all modules */
+  main:not(.print-dossier) .section-title,
+  main:not(.print-dossier) .page-title,
+  main:not(.print-dossier) [class*="CardTitle"],
+  main:not(.print-dossier) [class*="card-title"],
+  main:not(.print-dossier) [class*="SectionTitle"],
+  main:not(.print-dossier) [class*="section-title"],
+  main:not(.print-dossier) [class*="PageTitle"],
+  main:not(.print-dossier) [class*="page-title"] {
+    font-family: 'Public Sans', var(--font-public-sans), sans-serif !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Shadcn CardTitle component (data attribute based) */
+  main:not(.print-dossier) [data-slot="card-title"],
+  [role="dialog"] [data-slot="card-title"] {
+    font-family: 'Public Sans', var(--font-public-sans), sans-serif !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  /* Table Specific - Ensuring Table alignment and clarity */
+  main:not(.print-dossier) table,
+  main:not(.print-dossier) table *,
+  [role="dialog"] table,
+  [role="dialog"] table * {
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 12px 16px !important;
+  }
+
+  th {
+    background-color: #f8fafc !important;
+  }
+
+  /* Exempt print dossier from forced 14px & 400 font weights so it respects inline styles */
+  .print-dossier * {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    text-transform: inherit !important;
+    letter-spacing: inherit !important;
+  }
+}
+
+@media print {
+  @page {
+    margin: 8mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white !important;
+  }
+
+  /* Reset responsive table overrides for print - ensure all tables render as tables */
+  table,
+  thead,
+  tbody,
+  tfoot,
+  tr,
+  th,
+  td {
+    display: revert !important;
+    width: revert !important;
+    position: revert !important;
+    border-radius: 0 !important;
+    margin-bottom: 0 !important;
+    padding: revert !important;
+    box-shadow: none !important;
+    border: revert !important;
+    background: revert !important;
+  }
+
+  /* Custom scrollbar for better visibility in popups as requested */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #a1a1aa !important;
+    border-radius: 10px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #d4d4d8 !important;
+  }
+
+  thead tr {
+    position: revert !important;
+    top: revert !important;
+    left: revert !important;
+  }
+
+  td::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  td {
+    display: table-cell !important;
+    justify-content: revert !important;
+    min-height: revert !important;
+  }
+
+  td:last-child {
+    margin-top: 0 !important;
+    padding-top: revert !important;
+    border-top: revert !important;
+    justify-content: revert !important;
+    background: revert !important;
+  }
+
+  td:first-child {
+    background: revert !important;
+    margin: revert !important;
+    border-radius: 0 !important;
+    font-weight: revert !important;
+    border-bottom: revert !important;
+  }
+}
+
+@layer utilities {
+  .stats-digit {
+    font-family: 'Public Sans', sans-serif !important;
+    font-weight: 400 !important;
+  }
+
+  .font-public-sans {
+    font-family: 'Public Sans', sans-serif !important;
+  }
+}
+
+/* Global Scrollbar Styling - Consistent across all modules */
+::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a1a1aa !important;
+  border-radius: 10px !important;
+  border: 1px solid #f1f5f9 !important;
+  /* Adding border for better contrast */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #71717a !important;
+}
+
+/* Ensure scrollbars are always visible on mobile/touch devices for better UX */
+@media (max-width: 1023px) {
+  ::-webkit-scrollbar {
+    width: 5px !important;
+    height: 5px !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 20px !important;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px !important;
+    height: 4px !important;
+  }
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #a1a1aa #f1f5f9 !important;
+}
+
+
+.scrollbar-none::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-none::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-none::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #a1a1aa !important;
+  border-radius: 10px !important;
+}
+
+.shimmer {
+  background: linear-gradient(90deg,
+      hsl(var(--muted) / 0.3) 25%,
+      hsl(var(--muted) / 0.6) 50%,
+      hsl(var(--muted) / 0.3) 75%);
+  background-size: 200% 100%;
+  @apply animate-shimmer;
+}
+
+/* Global Layout tweaks for mobile */
+@media (max-width: 1023px) {
+  main {
+    padding: 1rem !important;
+    padding-bottom: 6rem !important;
+  }
+
+  .lg\:pl-\[300px\],
+  .lg\:pl-\[280px\] {
+    padding-left: 0 !important;
+  }
+
+  /* Grid responsiveness */
+  .grid-cols-12 {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+  }
+
+  .lg\:col-span-8,
+  .lg\:col-span-4,
+  .lg\:col-span-9,
+  .lg\:col-span-3 {
+    width: 100% !important;
+  }
+
+  /* Table responsiveness - Maintain Table Format with Horizontal Scroll */
+  .overflow-x-auto,
+  [data-slot="table-container"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: thin !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  table,
+  .responsive-table {
+    width: 100% !important;
+    min-width: 1000px !important;
+    display: table !important;
+    border-collapse: separate !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tbody {
+    display: table-row-group !important;
+  }
+
+  tr {
+    display: table-row !important;
+  }
+
+  td,
+  th {
+    display: table-cell !important;
+    white-space: nowrap !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* Button Responsiveness - Modern & Premium for mobile */
+  button:not(.sidebar-button),
+  .Button:not(.sidebar-button),
+  [role="button"]:not(.sidebar-button),
+  .button:not(.sidebar-button) {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+    height: 3rem !important;
+    min-height: 3rem !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    white-space: nowrap !important;
+    border-radius: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Remove shadow from sidebar specific buttons as requested */
+  .sidebar-button {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  button:active,
+  .Button:active {
+    transform: scale(0.96) !important;
+  }
+
+  /* Responsive Button Text - prevent overflow and ensure readability */
+  button span,
+  .Button span {
+    font-size: 12px !important;
+  }
+
+  /* Card and Tab refinements */
+  .Card,
+  .card {
+    border-radius: 0 !important;
+    padding: 1rem !important;
+  }
+
+  .TabsList,
+  [role="tablist"] {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    scrollbar-width: none !important;
+    padding: 0.4rem !important;
+    gap: 0.6rem !important;
+    -webkit-overflow-scrolling: touch;
+    background: #f8fafc !important;
+    border-radius: 0 !important;
+    border: 1px solid #f1f5f9 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  [role="tab"] {
+    white-space: nowrap !important;
+    padding: 0.6rem 1.2rem !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    height: 2.5rem !important;
+    border-radius: 0 !important;
+    min-width: max-content !important;
+    transition: all 0.2s ease !important;
+  }
+
+  [role="tab"][data-state="active"] {
+    background: white !important;
+    color: hsl(var(--primary)) !important;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Fix for Lucide icons in buttons on mobile */
+  button svg,
+  .Button svg {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 0.25rem !important;
+  }
+
+  .SelectContent,
+  .PopoverContent {
+    z-index: 100 !important;
+    max-height: var(--radix-select-content-available-height) !important;
+  }
+
+  [role="dialog"],
+  .DialogContent,
+  [data-slot="dialog-content"] {
+    max-height: 95dvh !important;
+    scrollbar-width: thin !important;
+  }
+
+  /* Ensure all module containers have horizontal scrollers if needed */
+  .CardContent,
+  .card-content,
+  [data-slot="card-content"],
+  .overflow-x-auto {
+    overflow-x: auto !important;
+    scrollbar-width: thin !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Robust horizontal scroller utility for module grids on mobile */
+  .mobile-horizontal-scroller {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 1.25rem !important;
+    padding-bottom: 1.5rem !important;
+    padding-right: 2rem !important;
+    /* Prevent cutoff */
+    margin-bottom: -0.5rem !important;
+    scrollbar-width: thin !important;
+  }
+
+  .mobile-horizontal-scroller>* {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    max-width: 140px !important;
+    /* Consistent item width for scroller */
+  }
+
+  /* Reset for desktop */
+  @media (min-width: 1024px) {
+    .mobile-horizontal-scroller {
+      display: grid !important;
+      overflow-x: visible !important;
+      padding-bottom: 0 !important;
+      padding-right: 0 !important;
+      margin-bottom: 0 !important;
+      gap: inherit !important;
+    }
+
+    .mobile-horizontal-scroller>* {
+      flex-shrink: 1 !important;
+      width: 100% !important;
+      max-width: none !important;
+    }
+  }
+}
+
+.header-text {
+  color: rgb(26, 18, 11);
+  font-family: "Great Vibes", cursive !important;
+  font-size: 34px !important;
+  letter-spacing: 0.015em !important;
+
+  position: absolute;
+  top: 397px !important;
+  /* moves to top */
+  left: 55% !important;
+  transform: translateX(-50%) !important;
+}
+
+.academic-year-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  /* space between text and year */
+  font-family: "Great Vibes", cursive;
+  font-size: 24px;
+  color: rgb(44, 33, 24);
+}
+
+.year-text {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1023px) {
+
+  /* Remove card UI from sidebar items */
+  [class*="sidebar"] button,
+  [class*="Sidebar"] button {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* Remove hover background */
+  [class*="sidebar"] button:hover,
+  [class*="Sidebar"] button:hover {
+    background: transparent !important;
+  }
+
+  /* Enforce 14px Public Sans for Sidebar on mobile as requested */
+  [data-sidebar="sidebar"][data-mobile="true"],
+  [data-sidebar="sidebar"][data-mobile="true"] * {
+    font-size: 14px !important;
+    font-family: 'Public Sans', sans-serif !important;
+  }
+
+  /* Optional: make it clean like text list */
+  [class*="sidebar"] button span,
+  [class*="Sidebar"] button span {
+    font-weight: 400 !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Specific Vertical Scroller for Sidebar Modules on Mobile */
+@media (max-width: 1023px) {
+  .sidebar-vertical-scroller {
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 transparent !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .sidebar-vertical-scroller::-webkit-scrollbar {
+    width: 6px !important;
+    display: block !important;
+  }
+
+  .sidebar-vertical-scroller::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .sidebar-vertical-scroller::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 10px !important;
+    border: 1px solid white !important;
+  }
+}
+
+/* Enforce 100vh height for Sidebar on Mobile */
+@media (max-width: 1023px) {
+
+  [data-sidebar='sidebar'],
+  [role='dialog'][data-sidebar='sidebar'] {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
